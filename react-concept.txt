@@ -1,0 +1,1592 @@
+/* api call and from validation with localstorage */
+import React, { useState } from 'react';
+import logo from '../../assets/img/logo.png';
+import axios from 'axios';
+import swal from 'sweetalert';
+import './loader.css';
+
+
+const SignIn = (props) => {
+    const [user, setUser] = useState({
+        username: '',
+        password: ''
+    })
+    const [show, toggleShow] = useState(false);
+    const [disable, setDisable] = React.useState(false);
+
+    // const { username, password } = user;
+
+    function handleChange(event) {
+        const { name, value } = event.target;
+        setUser((user) => {
+            return {
+                ...user,
+                [name]: value
+            };
+        });
+    };
+
+    const signup = () => {
+        window.location.replace('/signup')
+    }
+
+    var data = JSON.stringify({
+        username: user.username,
+        password: user.password
+    });
+
+    var config = {
+        method: 'post',
+        url: 'https://api.devpay.io/v1/app/signin',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        data: data
+    };
+
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        validatee();
+        if (validation === '') {
+            setDisable(true);
+            toggleShow(true);
+            await axios(config)
+                .then(function (dataresponse) {
+                    var userinfo = JSON.stringify(dataresponse.data.UserInfo);
+                    var status = dataresponse.data.response.status;
+
+                    if (status === 1) {
+                        //setUser(dataresponse.data)
+                        sessionStorage.setItem('key', userinfo);
+                        window.location.replace('/home');
+                    } else {
+                        swal('User does not exist')
+                        toggleShow(false);
+                        setDisable(false);
+                    }
+                })
+                .catch(function (error) {
+                    swal('Network Error');
+                    toggleShow(false);
+                    setDisable(false);
+                    console.log(error);
+                });
+        } else {
+            var span = document.createElement("span");
+            span.innerHTML = '<ul style="text-align:left">' + validation + '</ul>';
+
+            swal({
+                title: 'Required',
+                content: span,
+                confirmButtonText: "V redu",
+                allowOutsideClick: "true"
+            });
+            validation = '';
+        }
+    }
+
+    const checkStringNullEmpty = (str) => {
+        if (str != null && str !== '') {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+
+    var validation = '';
+    const validatee = () => {
+        if (checkStringNullEmpty(user.username)) {
+            validation += '<li>Enter Your Username</li>';
+        }
+        if (checkStringNullEmpty(user.password)) {
+            validation += '<li>Enter Your Password</li>';
+        }
+        if (validation !== '') {
+            swal(validation);
+            return;
+        }
+        else {
+
+        }
+    }
+
+
+    return (
+        <>
+            <div className="body-scroll d-flex flex-column h-100" data-page="signin">
+                <main className="container-fluid h-100">
+                    <div className="row h-100 overflow-auto">
+                        <div className="col-12 text-center mb-auto px-0">
+                            <header className="header">
+                                <div className="row">
+                                    <div className="col-auto"></div>
+                                    <div className="col">
+                                        <div className="logo-small">
+                                            <img src={logo} alt="" />
+                                            <h5>FiMobile</h5>
+                                        </div>
+                                    </div>
+                                    <div className="col-auto"></div>
+                                </div>
+                            </header>
+                        </div>
+                        <div className="col-10 col-md-6 col-lg-5 col-xl-3 mx-auto align-self-center text-center py-4">
+                            <h1 className="mb-4 text-color-theme">Sign in</h1>
+                            <form className="was-validated" onSubmit={handleSubmit} >
+                                <div className="form-floating is-valid mb-3">
+                                    <input className="form-control" type="username" name="username" value={user.username} onChange={handleChange} placeholder="Username" />
+                                    <label className="form-control-label">Username</label>
+                                </div>
+                                <div className="form-floating is-invalid mb-3">
+                                    <input className="form-control" type="password" name="password" value={user.password} onChange={handleChange} placeholder="Password" />
+                                    <label className="form-control-label">Password</label>
+                                    {/* <button type="button" className="text-danger tooltip-btn" data-bs-toggle="tooltip"
+                                        data-bs-placement="left" title="Enter valid Password" id="passworderror">
+                                        <i className="bi bi-info-circle"></i>
+                                    </button> */}
+                                </div>
+                                <p className="mb-3 text-center">
+                                    <a href="#" className="">
+                                        Forgot your password?
+                                    </a>
+                                </p>
+                                <button className="btn btn-lg btn-default w-100 mb-4 shadow" disabled={disable} type="submit" >
+                                    {show
+                                        ? 'Please Wait'
+                                        : 'Sign in'
+                                    }
+                                </button>
+                                {show && <div className="lds-spinner" id="loaderid"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>}
+                            </form>
+                            <p className="mb-2 text-muted">Don't have account?</p>
+                            <button type="button" onClick={signup} disabled={disable} className="btn btn-link" style={{ textDecoration: "none", color: '#092c9f', textTransform: "capitalize" }}>
+                                Sign up <i className="bi bi-arrow-right"></i>
+                            </button>
+                            {/* <button type="button" class="btn btn-link">Sign up
+                                <i className="bi bi-arrow-right"></i>
+                            </button> */}
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </>
+    );
+}
+
+export default SignIn;
+
+
+
+
+
+////////////////////////
+import React, { useState } from 'react';
+import { NavLink } from 'react-router-dom';
+import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
+import swal from 'sweetalert';
+import './loader.css';
+
+
+
+const SignUp = (props) => {
+    const [user, setUser] = useState({
+        Name: '',
+        Email: '',
+        Phone: '',
+        Country: '',
+        Username: '',
+        Password: '',
+        PasswordConfirmation: ''
+    })
+    const [ip, setIp] = useState([])
+    const [show, toggleShow] = useState(false);
+    const [disable, setDisable] = React.useState(false);
+
+    //const { Name, Email, Phone, Country, Username, Password, PasswordConfirmation } = user;
+
+    axios.get('https://api.ipify.org/?format=json')
+        .then(function (response) {
+            setIp(response.data.ip);
+        })
+        .catch(function (error) {
+            // console.log(error);
+        });
+
+    const Device_id = uuidv4();
+    //console.log(ID);
+
+
+    function handleChange(event) {
+        const { name, value } = event.target;
+        setUser((user) => {
+            return {
+                ...user,
+                [name]: value
+            };
+        });
+    };
+
+    const ccode = user.Country;
+    const price = typeof ccode === "string" ? ccode.split(',')[0] : ""
+    const price1 = typeof ccode === "string" ? ccode.split(',')[1] : ""
+
+    var data = JSON.stringify({
+        CustomerInfo: {
+            Name: user.Name,
+            Email: user.Email,
+            Country: price,
+            Phone: `${price1}${user.Phone}`,
+            Username: user.Username,
+            Password: user.Password,
+            Ip_address: ip,
+            Device_id: Device_id
+        }
+    });
+
+    const rotp = (Math.floor(100000 + Math.random() * 900000));
+    var otpcode = JSON.stringify({
+        OTPDetails: {
+            Mobile: `${price1}${user.Phone}`,
+            OTP: rotp
+        }
+    });
+
+    var otp = {
+        method: 'post',
+        url: 'https://api.devpay.io/v1/general/OTP',
+        headers: {
+            'content-Type': 'application/json'
+        },
+        data: otpcode
+    }
+    // console.log(rotp)
+
+
+
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        validatee();
+        if (validation === '') {
+            setDisable(true);
+            toggleShow(true);
+            await axios(otp)
+                .then(function (otpres) {
+                    console.log("otpres", otpres);
+                    var status = otpres.data.status;
+                    console.log("status", status);
+
+                    if (status === 1) {
+                        setUser(otpres.data);
+                        // var otpinfo = JSON.stringify(otpcode);
+                        sessionStorage.setItem('verifyotp', rotp);
+                        sessionStorage.setItem('user', data);
+                        // console.log(status)
+                        window.location.replace('/verify');
+                    }
+                    else {
+                        swal('Invalid User');
+                        setDisable(false);
+                        toggleShow(false);
+                    }
+                })
+                .catch(function (error) {
+                    swal('Server Not Response');
+                    toggleShow(false);
+                    setDisable(false);
+                    console.log("error", error);
+                });
+        } else {
+            var span = document.createElement("span");
+            span.innerHTML = '<ul style="text-align:left">' + validation + '</ul>';
+
+            swal({
+                title: 'Required',
+                content: span,
+                confirmButtonText: "V redu",
+                allowOutsideClick: "true"
+            });
+            validation = '';
+        }
+    }
+
+    const checkStringNullEmpty = (str) => {
+        if (str != null && str !== '') {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+
+    var validation = "";
+    const validatee = () => {
+        if (checkStringNullEmpty(user.Name)) {
+            validation += '<li>Name is required</li>';
+        }
+        if (checkStringNullEmpty(user.Username)) {
+            validation += '<li>Username required</li>';
+        }
+        if (checkStringNullEmpty(user.Country)) {
+            validation += '<li>Country required</li>';
+        }
+        if (checkStringNullEmpty(user.Phone)) {
+            validation += '<li>Phone Number required</li>';
+        }
+        if (checkStringNullEmpty(user.Email)) {
+            validation += '<li>Email id required</li>';
+        }
+        if (checkStringNullEmpty(user.Password)) {
+            validation += '<li>Password is required</li>';
+        }
+        if (checkStringNullEmpty(user.PasswordConfirmation)) {
+            validation += '<li>Confirm Password is required</li>';
+            return false;
+        }
+        if (user.Password !== user.PasswordConfirmation) {
+            validation += '<li>Password are not same</li>';
+        }
+    }
+
+    return (
+        <div className="body-scroll d-flex flex-column h-100" data-page="signup">
+            <main className="container-fluid h-100">
+                <div className="row h-100">
+                    <div className="col-12 text-center mb-auto px-0">
+                        <header className="header">
+                            <div className="row">
+                                <div className="col-auto">
+                                    <a href="/signin" target="_self" className="btn btn-light btn-44">
+                                        <i className="bi bi-arrow-left"></i>
+                                    </a>
+                                </div>
+                                <div className="col align-self-center">
+                                    <h5>Sign up</h5>
+                                </div>
+                                <div className="col-auto">
+                                    <NavLink to="#" className="btn btn-light btn-44 invisible"></NavLink>
+                                </div>
+                            </div>
+                        </header>
+                    </div>
+                    <div className="col-10 col-md-6 col-lg-5 col-xl-3 mx-auto align-self-center text-center py-4">
+                        <form className="was-validated" onSubmit={handleSubmit}>
+
+                            <div className="form-floating is-valid mb-3">
+                                <input type="Name" className="form-control" name="Name" value={user.Name} onChange={handleChange} placeholder="Username" />
+                                <label>Name</label>
+                            </div>
+                            <div className="form-floating is-valid mb-3">
+                                <input type="Username" className="form-control" name="Username" value={user.Username} onChange={handleChange} placeholder="Username" />
+                                <label>Username</label>
+                            </div>
+                            <div className="form-floating is-valid mb-3">
+                                <select className="form-control" name="Country" value={user.Country} onChange={handleChange}>
+                                    <option >select country</option>
+                                    <option value={'India, +91'}>India</option>
+                                    <option value={'United States, +1'}>United States</option>
+                                    <option value={'United Kingdoms, +44'}>United Kingdoms</option>
+                                </select>
+                                <input type="hidden" value={user.Country} />
+                                <label>Contry</label>
+                            </div>
+                            <div className="form-floating is-valid mb-3">
+                                <input type="number" className="form-control" name="Phone" value={user.Phone} onChange={handleChange}
+                                    placeholder="Phone" id="emailphone" />
+                                <label>Phone</label>
+                            </div>
+                            <div className="form-floating is-valid mb-3">
+                                <input type="Email" className="form-control" name="Email" value={user.Email} onChange={handleChange}
+                                    placeholder="Email" />
+                                <label>Email</label>
+                            </div>
+                            <div className="form-floating is-valid mb-3">
+                                <input type="password" className="form-control" name="Password" value={user.Password} onChange={handleChange} placeholder="Password" />
+                                <label>Password</label>
+                            </div>
+                            <div className="form-floating is-invalid mb-3">
+                                <input type="password" className="form-control" name="PasswordConfirmation" value={user.PasswordConfirmation} onChange={handleChange} placeholder="Confirm Password" />
+                                <label>Confirm Password</label>
+
+                                {/* <button type="button" className="btn btn-link text-danger tooltip-btn" data-bs-toggle="tooltip"
+                                    data-bs-placement="left" title="Enter valid Password" id="passworderror">
+                                    <i className="bi bi-info-circle"></i>
+                                </button> */}
+                            </div>
+                            <p className="mb-3"><span className="text-muted">By clicking on Signup button, you are agree to our</span> <NavLink
+                                to="#">Terms and Conditions</NavLink></p>
+                            <button type="submit" className="btn btn-lg btn-default w-100 mb-4 shadow" disabled={disable}>
+                                {show
+                                    ? 'Please Wait'
+                                    : 'Sign up'
+                                }
+                            </button>
+                            {show && <div className="lds-spinner" id="loaderid"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>}
+                        </form>
+                    </div>
+                </div>
+            </main>
+        </div>
+    );
+}
+
+export default SignUp;
+
+
+
+
+
+
+/////////////////////
+import React, { useState, useEffect } from 'react';
+import { Sidebar, Header, Footer } from '../index';
+import axios from 'axios';
+import masterocard from '../../assets/img/masterocard.png';
+import swal from 'sweetalert';
+import './loader.css';
+import ReactSwipe from 'react-swipe';
+
+const Qrpay = () => {
+    let reactSwipeEl;
+    const [show, toggleShow] = useState(false);
+    const [amountshow, setAmountshow] = useState(true)
+    const [disable, setDisable] = React.useState(false);
+    const [user] = useState(JSON.parse(sessionStorage.getItem('qrdata')));
+    const [card, setCard] = useState([]);
+    const [carddata, setCarddata] = useState('')
+    const [info] = useState(JSON.parse(sessionStorage.getItem('key')));
+    const [cardamount, setCardamount] = useState({
+        amount: '',
+        description: ''
+    })
+
+    //const { amount, fee_amount, description, account_id, secreate_key, customer_id } = cardamount;
+
+    const loadcard = () => {
+        const result = JSON.parse(localStorage.getItem('card'))
+        setCard(result)
+    }
+
+    useEffect(() => {
+        loadcard();
+    }, [])
+
+
+
+
+    function handleChange(event) {
+        setAmountshow(false)
+        const { name, value } = event.target;
+        setCardamount((cardamount) => {
+            return {
+                ...cardamount,
+                [name]: value
+            };
+        });
+    };
+
+
+    var cardpay = JSON.stringify({
+        ChargeDetails: {
+            amount: cardamount.amount,
+            fee_amount: 0,
+            description: cardamount.description,
+            //account_id: "acct_1JLt7zPGFLwAnCQn",
+            account_id: user?.account_id,
+            secreate_key: "sk_test_51JCZazATp3tZwQpXdc22uBovdh9riaTWsJsne5YsiVB2IwUGHRKqPqGh2GMcVqifylk3W8pJ5dobIvuoyZfnGFhT00r8bxvZMf",
+            environment: "sandbox",
+        },
+
+        CardDetails: {
+            Number: carddata.Number,
+            ExpMonth: carddata.ExpMonth,
+            ExpYear: carddata.ExpYear,
+            Cvc: carddata.Cvc,
+        },
+
+        CustomerDetails: {
+            Email: info.email,
+        }
+    })
+
+    var transaction = JSON.stringify({
+        CustomerTrInfo: {
+            Merchant_id: user?.account_id,
+            Merchant_name: user?.BusinessName,
+            Amount: cardamount.amount,
+            Fee: "0",
+            Id: info.id,
+            Stripe_tr_id: "1234567"
+        }
+    })
+
+    var transactionconfig = {
+        method: 'post',
+        url: 'https://api.devpay.io/v1/app.svc/transaction',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        data: transaction
+    };
+
+
+    var config = {
+        method: 'post',
+        url: 'https://api.devpay.io/v1/charge/SaveCard',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        data: cardpay
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        if (user != null) {
+            validatee()
+            if (cardamount.amount != '') {
+                if (card != null) {
+                    if (carddata != '') {
+                        setDisable(true);
+                        toggleShow(true);
+                        await axios(config)
+                            .then(function (cardresponse) {
+                                //swalconsole.log(JSON.stringify(cardresponse.data));
+                                var status = cardresponse.data.status;
+                                var message = cardresponse.data.message;
+                                var xorder_id = cardresponse.data.order_id;
+                                if (status === 1) {
+                                    sessionStorage.setItem('Successamount', cardamount.amount);
+                                    sessionStorage.setItem('return_order_id', xorder_id);
+                                    axios(transactionconfig)
+                                        .then(function (transactionresponse) {
+                                            var status = transactionresponse.data.response.status;
+                                            if (status === 1) {
+                                                window.location.replace('/paymentsuccess');
+                                            }
+                                        })
+                                        .catch(function (error) {
+                                            console.log(error);
+                                        })
+                                } else {
+                                    console.log(message);
+                                    //swal("card details is not valid")
+                                    sessionStorage.setItem('failedamount', cardamount.amount);
+                                    window.location.replace('/paymentfailed');
+                                }
+                                //setDisable(false);
+                                //toggleShow(false);
+                            })
+                            .catch(function (error) {
+                                console.log(error);
+                                //swal('Enter amount');
+                                setDisable(false);
+                                toggleShow(false);
+                            });
+                    } else {
+                        swal('Selected card not found')
+                    }
+                } else {
+                    swal("Card not found. Please add yor card ");
+                }
+            } else {
+                swal("Enter amount")
+            }
+        } else {
+            swal('QR Code not found')
+        }
+    }
+
+
+    const checkStringNullEmpty = (str) => {
+        if (str != null && str !== '') {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+
+    var validation = '';
+    const validatee = () => {
+        if (checkStringNullEmpty(cardamount.amount)) {
+            validation += '<li>Enter amount</li>';
+        }
+        if (validation !== '') {
+            swal(validation);
+            return;
+        }
+        else {
+
+        }
+    }
+
+    const onSiteChange = (e) => {
+        var xcid = (e.currentTarget.value);
+        const xdata = JSON.parse(localStorage.getItem('card'))
+        xdata.forEach(element => {
+            var xid = element.cardindex;
+            if (xid == xcid) {
+
+                /* var cnm = element.Number;
+                var cmonth = element.ExpMonth;
+                var cyear = element.ExpYear;
+                var ccvc = element.Cvc; */
+
+                setCarddata(element)
+            }
+        });
+    }
+
+    return (
+        <div className="body-scroll" data-page="index">
+            <Sidebar />
+            <main className="h-100" style={{ minHeight: '577px', paddingTop: '85.7188px', paddingBottom: '70px' }}>
+                <Header />
+                <div>
+                    <form onSubmit={handleSubmit}>
+                        <div className="main-container container">
+                            {user === null ? <p className="text-color-theme">QR Code not found</p> :
+                                <div className="row mb-4">
+                                    <div className="col-auto">
+                                        <div className="avatar avatar-44 rounded-10 shadow-sm">
+                                            <img src={user.logo} alt="" />
+                                        </div>
+                                    </div>
+                                    <div className="col align-self-center ps-0">
+                                        <p className="mb-1 text-color-theme">{user.BusinessName}</p>
+                                        <p className="text-muted size-12">Invoice ID: NAN</p>
+                                    </div>
+                                </div>
+                            }
+
+                            <div className="row">
+                                <div className="col-12 text-center mb-4">
+                                    <input type="number" className="trasparent-input text-center" name="amount" value={cardamount.amount} onChange={handleChange} placeholder="0" />
+                                    <div className="text-center"><span className="text-muted">Amount in USD</span>
+                                        <button className="btn btn-link btn-sm text-muted px-1 dropdown-toggle" type="button" id="ln1" data-bs-toggle="dropdown" aria-expanded="false">
+                                        </button>
+                                        <ul className="dropdown-menu dropdown-menu-end shadow border-0 w-110" aria-labelledby="ln1">
+                                            <li><a className="dropdown-item active" href="#">USD</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="row mb-4 fw-medium">
+                                <div className="col">
+                                    <p className="text-color-theme">Transfer Amount</p>
+                                </div>
+                                <div className="col-auto text-end">
+                                    {amountshow ? <p className="text-muted">0.00</p> : <p className="text-muted">{cardamount.amount}.00</p>}
+                                    {/* <p className="text-muted">{cardamount.amount}.00</p> */}
+                                </div>
+                            </div>
+
+                            <div className="row mb-4">
+                                <div className="col-12 ">
+                                    <button className="btn btn-default btn-lg shadow-sm w-100" disabled={disable}>
+                                        {show
+                                            ? 'Please Wait'
+                                            : 'Pay Now'
+                                        }
+                                    </button>
+                                </div>
+                            </div>
+                            {show && <div className="lds-spinner" id="loaderid"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>}
+
+                            <div className="row mb-3">
+                                <div className="col">
+                                    <h6 className="title">Amount pay from </h6>
+                                </div>
+                                <div className="col-auto">
+                                    <a href="/addcard" className="small">Add New</a>
+                                </div>
+                            </div>
+                            {card === null ?
+                                <div className="row mb-4">
+                                    <div className="col-12 ">
+                                        <button className="btn btn-default btn-lg shadow-sm w-100" >
+                                            <a style={{ color: "white" }} href="/addcard">
+                                                Add Card
+                                            </a>
+                                        </button>
+                                    </div>
+                                </div>
+                                :
+                                card.map((card, key) => (
+                                    <div key={key} className="swiper-slide">
+                                        <div className="card dark-bg">
+                                            <div className="card-body">
+                                                <div className="form-check position-absolute end-0 bottom-0 m-1">
+                                                    <input onChange={onSiteChange} className="form-check-input rounded-circle" name="cardselect" type="radio" id="card1" value={card.cardindex} />
+                                                    <label htmlFor="card1" className="form-check-label"></label>
+                                                </div>
+                                                <div className="row mb-3">
+                                                    <div className="col-auto align-self-center">
+                                                        <img src={masterocard} alt="" />
+                                                    </div>
+                                                    <div className="col align-self-center text-end">
+                                                        <p className="small">
+                                                            <span className="text-uppercase size-10">Validity</span><br />
+                                                            <span className="text-muted">{card.ExpMonth}/{card.ExpYear}</span>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="row">
+                                                    <div className="col-12">
+                                                        <h4 className="fw-normal mb-2">
+                                                            {card.Number.split(/(\d{4})/).join(' ').trim()}
+                                                        </h4>
+                                                        <p className="text-muted size-12">Debit Card</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                        </div>
+                    </form>
+                </div>
+            </main>
+            <Footer />
+        </div>
+    )
+}
+
+export default Qrpay;
+
+
+
+/*
+{card?.map((card, index) => (
+    <div class="swiper-slide swiper-slide-active" role="group" aria-label="1 / 3">
+        <div class="card">
+            <div class="card-body">
+                <div class="form-check position-absolute end-0 bottom-0 m-1">
+                    <input onChange={onSiteChange} class="form-check-input rounded-circle" name="cardselect" type="radio" id="card1" value={card.cardindex} />
+                    <label for="card1" class="form-check-label"></label>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-auto align-self-center">
+                        <img src={masterocard} alt="" />
+                    </div>
+                    <div class="col align-self-center text-end">
+                        <p class="small">
+                            <span class="text-uppercase size-10">Validity</span><br />
+                            <span class="text-muted">{card.ExpMonth}/{card.ExpYear}</span>
+                        </p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <h4 class="fw-normal mb-2">
+                            150540.00
+                            <span class="small text-muted">USD</span>
+                        </h4>
+                        <p class="mb-0 text-muted size-12">{card.Number}</p>
+                        <p class="text-muted size-12">Debit Card</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+))}
+
+*/
+
+
+
+
+
+
+///////////////////////////
+import React, { useState, useEffect } from 'react';
+import PaymentSuccessImg from '../../assets/img/PaymentSuccess.svg';
+
+const PaymentSuccess = () => {
+  const [user] = useState(JSON.parse(sessionStorage.getItem('qrdata')));
+  const [amount] = useState(JSON.parse(sessionStorage.getItem('Successamount')));
+  const [order_id, setOrder_id] = useState();
+
+  const data = () => {
+    const result = sessionStorage.getItem('return_order_id');
+    setOrder_id(result);
+  }
+
+  useEffect(() => {
+    data();
+  })
+
+  const home = () => {
+    window.location.replace('/home')
+    sessionStorage.removeItem('qrdata');
+    sessionStorage.removeItem('Successamount');
+    sessionStorage.removeItem('return_order_id');
+  }
+
+  return (
+    <div className="body-scroll" data-page="index">
+      <main className="h-100" style={{ minHeight: '577px', paddingTop: '90.7188px', paddingBottom: '70px' }}>
+        <div>
+          <form>
+            <div className="main-container container">
+              <div className="col align-self-center text-center" style={{ marginTop: '0px' }}>
+                <div>
+                  <img style={{ width: '20%' }} src={PaymentSuccessImg} alt="" />
+                  {/* <img style={{ width: '20%' }} src="https://www.svgrepo.com/show/13650/success.svg" alt="" /> */}
+                </div><br />
+                <div className="col align-self-center ps-0">
+                  <p className="mb-1 fw-medium" style={{ fontSize: '20px', fontWeight: 'bold' }}>Payment Success</p>
+                </div>
+              </div><br />
+
+              <div className="col align-self-center text-center" style={{ marginTop: '0px' }}>
+                <div className="col align-self-center ps-0 mb-4 fw-medium">
+                  <p className="mb-1 text-color-theme">Paid to :</p>
+                </div>
+              </div>
+
+              <div className="col align-self-center text-center" style={{ marginTop: '0px' }}>
+                <div className="avatar avatar-44 rounded-10 shadow-sm">
+                  <img src={user?.logo} alt="" />
+                </div>
+                <div className="col align-self-center ps-0">
+                  <p className="mb-1 text-color-theme">{user?.BusinessName}</p>
+                  <p className="text-muted size-12">ID: {order_id}</p>
+                </div>
+              </div><br />
+
+              <div className="row mb-4 fw-medium">
+                <div className="col">
+                  <p className="text-color-theme">Total Transfer Amount</p>
+                </div>
+                <div className="col-auto text-end">
+                  <p className="text-muted">{amount}.00</p>
+                </div>
+              </div>
+              <div className="row mb-4">
+                <div className="col-12 ">
+                  <button type="button" onClick={home} className="btn btn-default btn-lg shadow-sm w-100">
+                    Go Back
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </main >
+    </div >
+  )
+}
+
+export default PaymentSuccess;
+
+
+
+
+
+
+
+//////////////////////
+import React, { useState, useEffect } from 'react';
+import { Sidebar, Header, Footer } from '../index';
+import swal from 'sweetalert';
+
+
+const getLocalData = () => {
+    const lists = localStorage.getItem("card");
+
+    if (lists) {
+        return JSON.parse(lists);
+    } else {
+        return [];
+    }
+};
+
+const onlynumber = () => {
+    const numberonly = localStorage.getItem("onlycardnumber");
+
+    if (numberonly) {
+        return JSON.parse(numberonly);
+    } else {
+        return [];
+    }
+}
+
+const Addcard = () => {
+    const [carddetails, setCarddetails] = useState({
+        Number: '',
+        ExpMonth: '',
+        ExpYear: '',
+        Cvc: '',
+    });
+    const [cardnumberonly, setCardnumberonly] = useState(onlynumber());
+    //console.log(cardnumberonly)
+    const [cardnumber, setCardnumber] = useState('');
+
+    const [getdata, setGetdata] = useState(getLocalData());
+
+
+    const handleChangecardnumber = async (e) => {
+        const re = /^[0-9\b]/;
+        //const re = /^[0-9]/;
+
+        if (e.target.value.length === 4) {
+            e.target.value += '-'
+        } else if (e.target.value.length === 9) {
+            e.target.value += '-'
+        } else if (e.target.value.length === 14) {
+            e.target.value += '-'
+        }
+        if (e.target.value === '' || re.test(e.target.value)) {
+            setCardnumber(e.target.value)
+        }
+    }
+
+
+    const number = cardnumber.replace(/-/g, "");
+
+    function handleChange(event) {
+        const re = /^[0-9\b]/;
+        const { name, value } = event.target;
+        if (event.target.value === '' || re.test(event.target.value)) {
+            setCarddetails((carddetails) => {
+                return {
+                    ...carddetails,
+                    [name]: value
+                };
+            });
+        }
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+
+        validatee();
+        if (validation === '') {
+            var currentnumber = '' + cardnumberonly;
+            console.log(currentnumber)
+            if (number === currentnumber) {
+                swal('Card already exists')
+            } else {
+                const srno = (Math.floor(10 + Math.random() * 90));
+                const uniqueIdData = {
+                    cardindex: srno,
+                    Number: number,
+                    ExpMonth: carddetails.ExpMonth,
+                    ExpYear: carddetails.ExpYear,
+                    Cvc: carddetails.Cvc
+                };
+                setGetdata([...getdata, uniqueIdData]);
+
+                setCardnumberonly([...cardnumberonly, uniqueIdData.Number])
+
+                setCarddetails("");
+                window.location.replace('/qrpay')
+            }
+        } else {
+            var span = document.createElement("span");
+            span.innerHTML = '<ul style="text-align:left">' + validation + '</ul>';
+
+            swal({
+                title: 'Required',
+                content: span,
+                confirmButtonText: "V redu",
+                allowOutsideClick: "true"
+            });
+            validation = '';
+        }
+    }
+
+
+    const checkStringNullEmpty = (str) => {
+        if (str != null && str !== '') {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+
+    var validation = '';
+    const validatee = () => {
+        if (checkStringNullEmpty(number)) {
+            validation += '<li>Enter Card Number</li>';
+        }
+        if (checkStringNullEmpty(carddetails.ExpMonth)) {
+            validation += '<li>Enter Exp Month</li>';
+        }
+        if (checkStringNullEmpty(carddetails.ExpYear)) {
+            validation += '<li>Enter Exp Year</li>';
+        }
+        if (checkStringNullEmpty(carddetails.Cvc)) {
+            validation += '<li>Enter Card CVV</li>';
+        }
+        if (validation !== '') {
+            swal(validation);
+            return;
+        }
+        else { }
+    }
+
+    
+
+    useEffect(() => {
+        localStorage.setItem("card", JSON.stringify(getdata));
+        localStorage.setItem("onlycardnumber", JSON.stringify(cardnumberonly));
+    }, [getdata, cardnumberonly]);
+
+
+
+    return (
+        <div className="body-scroll" data-page="index">
+            <Sidebar />
+            <div>
+                <main className="h-100" style={{ minHeight: '577px', paddingTop: '85.7188px', paddingBottom: '70px' }}>
+                    <Header />
+                    <div className="col-10 col-md-6 col-lg-5 col-xl-3 mx-auto align-self-center text-center py-4">
+                        <form className="was-validated" onSubmit={handleSubmit}>
+                            <div className="form-floating is-valid mb-3">
+                                <input type="text" id="credit-card" maxLength={19} className="form-control" name="cardnumber" value={cardnumber} onChange={handleChangecardnumber} placeholder="Number" />
+                                <label>Card Number</label>
+                            </div>
+
+                            <div className="form-floating is-valid mb-3">
+                                <input type="text" className="form-control" maxLength="2" name="ExpMonth" value={carddetails.ExpMonth} onChange={handleChange} placeholder="ExpMonth" />
+                                <label>Exp Month</label>
+                            </div>
+
+                            <div className="form-floating is-valid mb-3">
+                                <input type="text" className="form-control" maxLength="2" name="ExpYear" value={carddetails.ExpYear} onChange={handleChange} placeholder="ExpYear" />
+                                <label>Exp Year</label>
+                            </div>
+
+                            <div className="form-floating is-valid mb-3">
+                                <input type="text" className="form-control" maxLength="3" name="Cvc" value={carddetails.Cvc} onChange={handleChange} placeholder="Cvc" />
+                                <label>Cvv number</label>
+                            </div>
+
+                            <button type="submit" className="btn btn-lg btn-default w-100 mb-4 shadow">Add Card</button>
+                        </form>
+                    </div>
+                </main>
+                <Footer />
+            </div>
+        </div>
+    )
+}
+
+export default Addcard
+
+
+
+
+
+
+//////////////////////////////
+import React, { useState, useEffect, useRef } from 'react'
+import { NavLink, useHistory } from 'react-router-dom';
+import progress from '../../assets/img/progress.png';
+import axios from 'axios';
+import swal from 'sweetalert';
+import './loader.css';
+
+const Verify = () => {
+    const [otp] = useState(JSON.parse(sessionStorage.getItem('verifyotp')))
+    const [txtotp, setTxtotp] = useState({
+        otptxt: ''
+    });
+    const [show, toggleShow] = useState(false);
+    //const { otptxt } = txtotp;
+    const history = useHistory();
+    const [data] = useState(JSON.parse(sessionStorage.getItem('user')));
+    const [seconds, setSeconds] = useState(180);
+    const [done, setDone] = useState(false);
+    const [disable, setDisable] = React.useState(false);
+    const foo = useRef();
+
+    const signin = () => {
+        window.location.replace('/signin');
+    }
+
+    function handleChange(event) {
+        const { name, value } = event.target;
+        setTxtotp((txtotp) => {
+            return {
+                ...txtotp,
+                [name]: value
+            };
+        });
+    };
+
+
+
+    var config = {
+        method: 'post',
+        url: 'https://api.devpay.io/v1/app/signup',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        data: data
+    };
+
+    const onSubmit = async (e) => {
+        e.preventDefault()
+        var currentotp = '' + otp;
+        if (txtotp.otptxt === currentotp) {
+            setDisable(true);
+            toggleShow(true);
+            axios(config)
+                .then(function (dataresponse) {
+                    // console.log(JSON.stringify(dataresponse.data));
+                    var status = dataresponse.data.response.status;
+                    if (status === 1) {
+                        history.push('/thankyou');
+                    } else {
+                        swal('User already Exists');
+                        toggleShow(false);
+                        setDisable(false);
+                        //window.location.replace('/signup');
+                    }
+
+                })
+                .catch(function (error) {
+                    swal('Server Not Response');
+                    toggleShow(false);
+                    setDisable(false);
+                    console.log(error);
+                });
+        } else {
+            swal('Invalid OTP');
+            toggleShow(false);
+            setDisable(false);
+
+        }
+
+    }
+
+    const rotp = (Math.floor(100000 + Math.random() * 900000));
+    var otpcode = JSON.stringify({
+        OTPDetails: {
+            Mobile: data.CustomerInfo.Phone,
+            OTP: rotp
+        }
+    });
+
+    var resendotp = {
+        method: 'post',
+        url: 'https://api.devpay.io/v1/general/OTP',
+        headers: {
+            'content-Type': 'application/json'
+        },
+        data: otpcode
+    }
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        await axios(resendotp)
+            .then(function (otpres) {
+                // console.log(JSON.stringify(otpres.data));
+                sessionStorage.setItem('verifyotp', rotp);
+                window.location.reload('/verify');
+            })
+            .catch(function (error) {
+                swal('Server Not Response');
+                toggleShow(false);
+                setDisable(false);
+                console.log(error);
+            });
+    }
+
+    useEffect(() => {
+        function tick() {
+            setSeconds(prevSeconds => prevSeconds - 1)
+        }
+        foo.current = setInterval(() => tick(), 1000) // eslint-disable-next-line
+    }, []);
+
+    useEffect(() => {
+        if (seconds === 0) {
+            clearInterval(foo.current);
+            setDone(true);
+            toggleShow(false);
+            setDisable(false);
+            sessionStorage.removeItem('verifyotp')
+        } // eslint-disable-next-line
+    }, [seconds])
+
+    return (
+        <>
+            <div>
+                <form onSubmit={e => onSubmit(e)}>
+                    <main className="container-fluid h-100" style={{ minHeight: '577px' }}>
+                        <div className="row h-100">
+                            <div className="col-12 text-center mb-auto px-0">
+                                <header className="header">
+                                    <div className="row">
+                                        <div className="col-auto">
+                                            <button onClick={signin} className="btn btn-light btn-44">
+                                                <i className="bi bi-arrow-left"></i>
+                                            </button>
+                                        </div>
+                                        <div className="col align-self-center">
+                                            <h5>OTP Verification</h5>
+                                        </div>
+                                        <div className="col-auto">
+                                            <NavLink to="" className="btn btn-light btn-44 invisible"></NavLink>
+                                        </div>
+                                    </div>
+                                </header>
+                            </div>
+                            <div className="col-10 col-md-6 col-lg-5 col-xl-3 mx-auto align-self-center text-center py-4">
+                                <h1 className="mb-4 text-color-theme">Verify OTP</h1>
+                                <p className="text-muted mb-4">Verify OTP sent to your provided email address and phone number</p>
+                                <div className="form-floating is-valid mb-3">
+                                    <input type="number" className="form-control" name="otptxt" value={txtotp.otptxt} onChange={handleChange} placeholder="Enter OTP" />
+                                    <label>Enter OTP</label>
+                                </div>
+                                <button type="submit" className="btn btn-lg btn-default w-100 mb-4 shadow" disabled={disable}>
+                                    {show
+                                        ? 'Verifying'
+                                        : 'Verify'
+                                    }
+                                </button>
+                                {show && <div className="lds-spinner" id="loaderid"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>}
+                            </div>
+                            <div className="col-12 text-center mt-auto">
+                                <div className="row justify-content-center footer-info">
+                                    <div className="col-auto text-center">
+                                        <>
+                                            <span className="progressstimer">
+                                                <img src={progress} alt="" />
+                                                <span className="timer" id="timer">
+                                                    {done
+                                                        ? "0"
+                                                        : seconds
+                                                    }
+                                                </span>
+                                            </span>
+                                            <br />
+                                        </>
+
+                                        {done && <p className="text-muted">OTP expire</p>}
+                                        {/* <p className="mb-3"><span className="text-muted">Didn't received yet?</span> <a type="button" onClick={handleSubmit} href="#">Resend OTP</a></p> */}
+                                        <p className="mb-3"><span className="text-muted">Didn't received yet?</span> <button type="button" onClick={handleSubmit} className="btn btn-link" style={{ textDecoration: "none", color: "#092c9f", textTransform: "capitalize" }}>Resend OTP</button></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                </form>
+            </div>
+        </>
+    )
+}
+
+export default Verify
+
+
+
+
+
+
+
+
+//////////////////////////////////
+
+import React from 'react';
+import { BrowserRouter, Route, Switch, Redirect } from "react-router-dom";
+
+import { SignIn, SignUp, Home, Verify, Thankyou, Qrpayments, Loadwallet, Wallet, Notification, Rewards, History, Qrpay, Cardmanage, Addcard, PaymentSuccess, PaymentFailed, Transactions } from './component';
+
+function App() {
+  const user = JSON.parse(sessionStorage.getItem('key'));
+
+  return (
+    <BrowserRouter>
+      <Switch>
+        {/* <Route exact path="/signin" component={SignIn} />
+        <Route exact path="/signup" component={SignUp} />
+        <Route exact path="/home" component={Home} />
+        <Route exact path="/verify" component={Verify} />
+        <Route exact path="/thankyou" component={Thankyou} />
+        <Route exact path="/qrpayments" component={Qrpayments} />
+        <Route exact path="/loadwallet" component={Loadwallet} />
+        <Route exact path="/wallet" component={Wallet} />
+        <Route exact path="/notification" component={Notification} />
+        <Route exact path="/rewards" component={Rewards} />
+        <Route exact path="/history" component={History} />
+        <Route exact path="/qrpay" component={Qrpay} />
+        <Route exact path="/cardmanage" component={Cardmanage} />
+        <Route exact path="/addcard" component={Addcard} />
+        <Route exact path="/paymentsuccess" component={PaymentSuccess} />
+        <Route exact path="/paymentfailed" component={PaymentFailed} />
+        <Route exact path="/transactions" component={Transactions} />
+        <Redirect from="/" to="/signin" /> */}
+
+        <Route exact path="/signin" component={SignIn} />
+        <Route exact path="/signup" component={SignUp} />
+        
+        <Route exact path="/home">{user ? <Home /> : <Redirect to="/signin" />}</Route>
+
+        <Route exact path="/verify">{!user ? <Verify /> : <Redirect to="/verify" />}</Route>
+        <Route exact path="/thankyou">{!user ? <Thankyou /> : <Redirect to="/thankyou" />}</Route>
+        
+        <Route exact path="/qrpayments">{user ? <Qrpayments /> : <Redirect to="/signin" />}</Route>
+        <Route exact path="/loadwallet">{user ? <Loadwallet /> : <Redirect to="/signin" />}</Route>
+        <Route exact path="/wallet">{user ? <Wallet /> : <Redirect to="/signin" />}</Route>
+        <Route exact path="/notification">{user ? <Notification /> : <Redirect to="/signin" />}</Route>
+        <Route exact path="/rewards">{user ? <Rewards /> : <Redirect to="/signin" />}</Route>
+        <Route exact path="/history">{user ? <History /> : <Redirect to="/signin" />}</Route>
+        <Route exact path="/qrpay">{user ? <Qrpay /> : <Redirect to="/signin" />}</Route>
+        <Route exact path="/cardmanage">{user ? <Cardmanage /> : <Redirect to="/signin" />}</Route>
+        <Route exact path="/addcard">{user ? <Addcard /> : <Redirect to="/signin" />}</Route>
+        <Route exact path="/paymentsuccess">{user ? <PaymentSuccess /> : <Redirect to="/signin" />}</Route>
+        <Route exact path="/paymentfailed">{user ? <PaymentFailed /> : <Redirect to="/signin" />}</Route>
+        <Route exact path="/transactions">{user ? <Transactions /> : <Redirect to="/signin" />}</Route>
+        <Redirect from="/" to="/signin" />
+      </Switch>
+    </BrowserRouter>
+  );
+}
+
+export default App;
+
+///////
+qr code reader and scaner with ternary operator
+import React, { useState } from 'react';
+import { Sidebar, Header, Footer } from '../index';
+import QrReader from 'react-qr-reader';
+import QRCode from 'qrcode.react'
+import { Redirect } from "react-router-dom";
+
+
+const Qrpayments = () => {
+    const [scanResultWebCam, setScanResultWebCam] = useState('');
+    const [isScan, setIsScan] = useState(true);
+
+    const handleErrorWebCam = (error) => {
+        console.log(error);
+    }
+
+    const handleScanWebCam = (result) => {
+        if (result) {
+            setScanResultWebCam(result);
+            sessionStorage.setItem('qrdata', result);
+            window.location.replace('/qrpay')
+            return <Redirect to="scanResultWebCam" />
+        }
+    }
+
+    const switchMode = () => {
+        setIsScan((prevIsScan) => !prevIsScan);
+    };
+
+    const downloadQRCode = () => {
+        const qrCodeURL = document.getElementById('qrCodeEl')
+            .toDataURL("image/png")
+            .replace("image/png", "image/octet-stream");
+        console.log(qrCodeURL)
+        let aEl = document.createElement("a");
+        aEl.href = qrCodeURL;
+        aEl.download = "QR_Code.png";
+        document.body.appendChild(aEl);
+        aEl.click();
+        document.body.removeChild(aEl);
+    }
+
+    return (
+        <div className="body-scroll" data-page="index">
+            <Sidebar />
+            <div>
+                <main className="h-100" style={{ minHeight: '577px', paddingTop: '85.7188px', paddingBottom: '70px' }}>
+                    <Header />
+                    <div>
+                        <div className="main-container container">
+                            <div className="row mb-4">
+                                {/* <h5 className="col-12 text-center">{isScan ? 'Scan and pay' : 'Your QR Code'}</h5><br /><br /> */}
+                                <div className="col-12 text-center" style={{marginTop: '30px'}}>
+                                    <QrReader
+                                        delay={200}
+                                        style={{ width: '100%' }}
+                                        onError={handleErrorWebCam}
+                                        onScan={handleScanWebCam}
+                                    />
+                                    {/* {isScan ?
+                                        <QrReader
+                                            delay={200}
+                                            style={{ width: '100%' }}
+                                            onError={handleErrorWebCam}
+                                            onScan={handleScanWebCam}
+                                        />
+                                        :
+                                        <QRCode
+                                            id="qrCodeEl"
+                                            size={200}
+                                            value="http://facebook.github.io/react/http://facebook.github.io/react/http://facebook.github.io/react/http://facebook.github.io/react/http://facebook.github.io/react/http://facebook.github.io/react/http://facebook.github.io/react/http://facebook.github.io/react/http://facebook.github.io/react/http://facebook.github.io/react/"
+                                        />
+                                    } */}
+                                </div>
+                            </div>
+                            <div className="row">
+                                <div className="col-12 text-center mb-4">
+                                    <h1 className="mb-3 text-color-theme">Scan QR &amp; Pay</h1>
+                                    {/* {isScan ? <h1 className="mb-3 text-color-theme">Scan QR &amp; Pay</h1> : <h1 className="mb-3 text-color-theme">Your QR Code</h1>} */}
+                                    <p className="text-muted mb-3">Its instant and easy. There are 1500k sellers accept payment via
+                                        FiMobile. To Scan Allow access
+                                        to camera.
+                                    </p>
+                                    <button onClick={switchMode} className="btn btn-default btn-lg mb-3 px-4 shadow-sm" data-bs-toggle="modal">
+                                        <i className="bi bi-camera mx-2"></i>{/* <a style={{ color: 'white' }} href="#"> */}Enable Camera{/* {isScan ? 'Qr Code' : "Enable Camera"} */}{/* </a> */}
+                                    </button><br />
+                                    {/* {isScan ?
+                                        <div style={{ display: "none" }}></div> :
+                                        <button onClick={downloadQRCode} className="btn btn-default btn-lg mb-3 px-4 shadow-sm" data-bs-toggle="modal">
+                                            Download
+                                        </button>
+                                    } */}
+                                    <p className="text-muted">Now you can also make payments for 100 other standard payment services.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+                <Footer />
+            </div>
+        </div>
+    )
+}
+
+export default Qrpayments
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//////////////
+import React, { useState, useEffect } from 'react';
+import { Sidebar, Header, Footer } from '../index';
+import company4 from '../../assets/img/company4.jpg';
+import axios from 'axios';
+
+const Transactions = () => {
+    const [user] = useState(JSON.parse(sessionStorage.getItem('key')));
+    const [data, setData] = useState([]);
+
+    var myList = JSON.stringify({
+        id: user.id,
+    })
+
+    var transactionlist = {
+        method: 'post',
+        url: 'https://api.devpay.io/v1/app/transaction_list',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        data: myList
+    };
+
+    const list = async () => {
+        await axios(transactionlist)
+            .then(function (listresponse) {
+                //console.log(listresponse.data.custTrList)
+                setData(listresponse.data.custTrList.reverse());
+
+            })
+            .catch(function (error) {
+                console.log(error);
+            })
+    }
+
+    useEffect(() => {
+        list();
+    })
+
+    const cdate = new Date()
+
+    function taskDate(dateMilli) {
+        var d = (new Date(dateMilli) + '').split(' ');
+        d[2] = d[2] + ',';
+
+        return [d[0], d[1], d[2], d[3]].join(' ');
+    }
+
+    var datemilli = Date.parse(cdate);
+
+    return (
+        <div className="body-scroll" data-page="home">
+            <Sidebar />
+            <form method="post" action="./dashboard" id="form1">
+                <main className="h-100" style={{ minHeight: '577px', paddingTop: '85.7188px', paddingBottom: '70px', }}>
+                    <Header />
+                    <div>
+                        <div className="main-container container">
+                            <div className="row mb-3">
+                                <div className="col">
+                                    <h6 className="title">Transactions<br /><small className="fw-normal text-muted">{taskDate(datemilli)}</small>
+                                    </h6>
+                                </div>
+                            </div>
+                            <div className="row mb-4">
+                                <div className="col-12 px-0">
+                                    <ul className="list-group list-group-flush bg-none">
+                                        {data.length === 0 ?
+                                            <li className="list-group-item">
+                                                <div className="row">
+
+                                                    <div className="col align-self-center ps-0">
+                                                        <p className="text-color-theme mb-0" style={{ textAlign: 'center' }}>No Transactions Found</p>
+
+                                                    </div>
+
+                                                </div>
+                                            </li>
+                                            :
+                                            data.map((data, key) => (
+                                                <li key={key} className="list-group-item">
+                                                    <div className="row">
+                                                        <div className="col-auto">
+                                                            <div className="avatar avatar-50 shadow rounded-10 ">
+                                                                <img src={company4} alt="" />
+                                                            </div>
+                                                        </div>
+                                                        <div className="col align-self-center ps-0">
+                                                            <p className="text-color-theme mb-0">{data.Merchant_name}</p>
+                                                            <p className="text-muted size-12">{(new Date(data.Tr_date)).toLocaleString()}</p>
+                                                        </div>
+                                                        <div className="col align-self-center text-end">
+                                                            <p className="mb-0">{data.Amount}.00</p>
+                                                            <p className="text-muted size-12">Debit Card 4242</p>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            ))
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+                <Footer />
+            </form>
+        </div>
+    );
+}
+
+export default Transactions;
+
+
