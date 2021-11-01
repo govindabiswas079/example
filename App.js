@@ -2,8 +2,25 @@ import React, { useState, useEffect } from 'react';
 import QRCode from 'qrcode.react';
 import QrcodeDecoder from 'qrcode-decoder';
 import swal from 'sweetalert';
+import Loader from "react-loader-spinner";
+import useScriptLoader from 'use-script-loader';
+
+import './App.css'
+
+
+const LoaderComponent = () => {
+  return (
+    <>
+      <div >
+        <Loader type="Puff" color="#00BFFF" height={80} width={80} />
+      </div>
+    </>
+  );
+}
 
 function App() {
+  const [disable, setDisable] = useState(true);
+  const [loadings, setLoadings] = useState(false)
   const [inputText, setInputText] = useState({
     Name: '',
     Email: '',
@@ -12,7 +29,6 @@ function App() {
   const [qrCodeText, setQRCodeText] = useState('');
   const [imagePreview, setImagePreview] = useState("");
   const [user, setUser] = useState("");
-
   const [username, setUsername] = useState(false);
   const [email, setEmail] = useState(false);
   const [password, setPassword] = useState(false);
@@ -32,6 +48,7 @@ function App() {
   const [show, setShow] = useState(false);
   const showPassword = () => setShow(!show);
 
+
   const usernameInput = (e) => {
     if (e.target.value.trim().length >= 6) {
       setUseData({
@@ -39,6 +56,7 @@ function App() {
         username: e.target.value,
         isValidUser: true
       });
+
     } else {
       setUseData({
         ...userData,
@@ -51,7 +69,7 @@ function App() {
 
 
   let handleOnChange = () => {
-    let re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    let re = /^(([^<>()\]\\.,;:\s@"]+(\.[^<>()\]\\.,;:\s@"]+)*)|(".+"))@(([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     // let re = /^[ ]*([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})[ ]*$/i;
 
     if (re.test(userData.email)) {
@@ -103,6 +121,7 @@ function App() {
         confrimpassword: e.target.value,
         isValidConfrimpassword: false
       });
+      setDisable(true)
       setConfrimpassword(false)
     } else {
       setUseData({
@@ -158,7 +177,8 @@ function App() {
     e.preventDefault();
     validatee();
     if (validation === '') {
-      swal("done")
+      setLoadings(true);
+      swal("done");
       console.log("finalData", finalData)
     } else {
       return null;
@@ -222,11 +242,20 @@ function App() {
     document.body.appendChild(aEl);
     aEl.click();
     document.body.removeChild(aEl);
-  }
+  };
+
+  const obj = { 5.0: 10, 28.0: 14, 3.0: 6, 7.0: 45, 30.0: 18, 13.0: 15 }
+  const mapped = Object.keys(obj).map(key => ({ type: key, value: obj[key] })) // object to array converting method
+  const newobj = [{ balance: 0, customer_id: "cus_KQhhVTOuE6x0D5", email: "biswasgovind@gmail.com", id: "9", name: "Govind Biswas", phone: " +919112942660", profile_pic: null, wallet_no: " +919112942660" }]
+  const newdata = Object.assign({}, ...newobj) // array to object converting method
+  //console.log("object to array converting method\n", mapped)
+  //console.log("array to object converting method", newdata)
+
 
 
   return (
-    <>
+    <div>
+      {loadings && <div className="loader"></div>}
       <br />
       <br />
       <div style={{ margin: '0 auto', maxWidth: '1040px' }} className="App">
@@ -309,8 +338,48 @@ function App() {
           <button type="submit" className="btn btn-primary" onClick={(e) => onSubmit(e)}>Submit</button>
         </form>
       </div>
-    </>
+    </div>
+  );
+};
+
+export default App;
+
+
+///current coordinate
+
+import React, { useState, useEffect } from 'react';
+
+  const Example = () => {
+  const [lat, setLat] = useState(null);
+  const [lng, setLng] = useState(null);
+  const [status, setStatus] = useState(null);
+
+  const getLocation = () => {
+    if (!navigator.geolocation) {
+      setStatus('Geolocation is not supported by your browser');
+    } else {
+      setStatus('Locating...');
+      navigator.geolocation.getCurrentPosition((position) => {
+        //console.log(position);
+        setStatus(null);
+        setLat(position.coords.latitude);
+        setLng(position.coords.longitude);
+      }, () => {
+        setStatus('Unable to retrieve your location');
+      });
+    }
+  }
+
+
+  return (
+    <div className="App">
+      <button onClick={getLocation}>Get Location</button>
+      <h1>Coordinates</h1>
+      <p>{status}</p>
+      {lat && <p>Latitude: {lat}</p>}
+      {lng && <p>Longitude: {lng}</p>}
+    </div>
   );
 }
 
-export default App;
+export default Example;
